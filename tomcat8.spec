@@ -18,19 +18,23 @@
 
 Summary:    Apache Servlet/JSP Engine, RI for Servlet 3.1/JSP 2.3 API
 Name:       tomcat8
-Version:    8.0.24
+Version:    8.5.40
 BuildArch:  noarch
 Release:    1
 License:    Apache Software License
 Group:      Networking/Daemons
 URL:        http://tomcat.apache.org/
 Source0:    apache-tomcat-%{version}.tar.gz
-Source1:    %{name}.init
+Source1:    %{name}.service
 Source2:    %{name}.sysconfig
 Source3:    %{name}.logrotate
 Source4:    %{name}.conf
-#Requires:   jdk
+BuildRequires:    systemd-units
 Requires:   jpackage-utils
+Requires(pre): shadow-utils
+Requires(post):   systemd-units
+Requires(preun):  systemd-units
+Requires(postun): systemd-units
 BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %description
@@ -103,12 +107,12 @@ chmod 775 %{buildroot}/%{tomcat_cache_home}/work
 cd -
 
 # Drop sbin script
-install -d -m 755 %{buildroot}/%{_sbindir}
-install    -m 755 %_sourcedir/%{name}.bin %{buildroot}/%{_sbindir}/%{name}
+#install -d -m 755 %{buildroot}%{_libexecdir}
+#mv %{buildroot}/%{tomcat_home}/bin %{buildroot}%{_libexecdir}/%{name}
 
-# Drop init script
-install -d -m 755 %{buildroot}/%{_initrddir}
-install    -m 755 %_sourcedir/%{name}.init %{buildroot}/%{_initrddir}/%{name}
+# Drop service script
+install -d -m 755 %{buildroot}/%{_unitdir}
+install    -m 755 %_sourcedir/%{name}.service %{buildroot}/%{_unitdir}/%{name}.service
 
 # Drop sysconfig script
 install -d -m 755 %{buildroot}/%{_sysconfdir}/sysconfig/
@@ -134,8 +138,7 @@ getent passwd %{tomcat_user} >/dev/null || /usr/sbin/useradd --comment "Tomcat 8
 %defattr(-,root,root)
 %{tomcat_user_home}
 %{tomcat_home}
-%{_initrddir}/%{name}
-%{_sbindir}/%{name}
+%{_unitdir}/%{name}.service
 %{_sysconfdir}/logrotate.d/%{name}
 %defattr(-,root,%{tomcat_group})
 %{tomcat_cache_home}
@@ -146,21 +149,14 @@ getent passwd %{tomcat_user} >/dev/null || /usr/sbin/useradd --comment "Tomcat 8
 %config(noreplace) %{_sysconfdir}/%{name}/*
 
 %post
-chkconfig --add %{name}
+%systemd_post %{name}.service
 
 %preun
-if [ $1 = 0 ]; then
-  service %{name} stop > /dev/null 2>&1
-  chkconfig --del %{name}
-fi
+%systemd_preun %{name}.service
 
 %postun
-if [ $1 -ge 1 ]; then
-  service %{name} condrestart >/dev/null 2>&1
-fi
+%systemd_postun_with_restart %{name}.service
 
 %changelog
-* Thu Sep 4 2014 Edward Bartholomew <edward@bartholomew>
-- 7.0.55
-* Mon Jul 1 2013 Nathan Milford <nathan@milford.io>
-- 7.0.41
+* Mon Apr 22 2019 kaha2010@gmail.com
+  - Initial packaging

@@ -1,0 +1,18 @@
+[Unit]
+Description=Apache Tomcat Web Application Container
+After=syslog.target network.target
+
+[Service]
+EnvironmentFile=/etc/tomcat8/tomcat8.conf
+
+ExecStart=/usr/share/tomcat8/bin/catalina.sh run
+ExecStop=/usr/share/tomcat8/bin/catalina.sh stop
+SuccessExitStatus=143
+
+User=tomcat8
+Group=tomcat8
+
+SyslogIdentifier=tomcat8
+
+[Install]
+WantedBy=multi-user.target

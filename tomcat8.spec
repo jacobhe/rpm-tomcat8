@@ -112,7 +112,7 @@ cd -
 
 # Drop service script
 install -d -m 755 %{buildroot}/%{_unitdir}
-install    -m 755 %_sourcedir/%{name}.service %{buildroot}/%{_unitdir}/%{name}.service
+install    -m 644 %_sourcedir/%{name}.service %{buildroot}/%{_unitdir}/%{name}.service
 
 # Drop sysconfig script
 install -d -m 755 %{buildroot}/%{_sysconfdir}/sysconfig/
